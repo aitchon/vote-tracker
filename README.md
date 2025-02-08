@@ -32,6 +32,7 @@ Clone the repository:
    ```bash
    git clone https://github.com/aitchon/vote-tracker.git
    cd vote-tracker
+   ```
 Install dependencies:
 
 ```bash
