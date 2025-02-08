@@ -88,19 +88,62 @@ The application exposes the following REST API endpoint:
 Get Statistics
 Endpoint: GET /stats
 
-Description: Returns the most upvoted post, top user, and total posts for top user.
+Description: Returns the most upvoted post and top 10 users with most posts.
 
 Example Response:
 
 ```json
 {
-  "most_upvoted_post": {
-    "title": "Test Post",
-    "ups": 100,
-    "author": "test_user"
-  },
-  "top_user": "test_user",
-  "top_user_posts": 5
+    "most_upvoted_post": {
+        "data": {
+            "title": "What are some things you would change about Go?",
+            "ups": 93,
+            "author": "Jamlie977",
+            "id": "1ik1zqx"
+        }
+    },
+    "top_users": [
+        {
+            "User": "Achilles-612",
+            "Posts": 1
+        },
+        {
+            "User": "Haikal019",
+            "Posts": 1
+        },
+        {
+            "User": "Used_Frosting6770",
+            "Posts": 1
+        },
+        {
+            "User": "hosmanagic",
+            "Posts": 1
+        },
+        {
+            "User": "ArtisticHamster",
+            "Posts": 1
+        },
+        {
+            "User": "nicolashery",
+            "Posts": 1
+        },
+        {
+            "User": "prijateljklokana",
+            "Posts": 1
+        },
+        {
+            "User": "dhawos",
+            "Posts": 1
+        },
+        {
+            "User": "Jamlie977",
+            "Posts": 1
+        },
+        {
+            "User": "guettli",
+            "Posts": 1
+        }
+    ]
 }
 ```
 

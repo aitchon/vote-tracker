@@ -1,10 +1,18 @@
 package stats
 
-import "vote-tracker/models"
+import (
+	"sort"
+	"vote-tracker/models"
+)
 
 type Statistics struct {
 	MostUpvotedPost models.RedditPost
 	UserPostCounts  map[string]int
+}
+
+type userPostCount struct {
+	User  string
+	Posts int
 }
 
 func NewStatistics() *Statistics {
@@ -23,16 +31,21 @@ func (s *Statistics) Update(post models.RedditPost) {
 	s.UserPostCounts[post.Data.Author]++
 }
 
-func (s *Statistics) GetTopUser() string {
-	topUser := ""
-	maxPosts := 0
+func (s *Statistics) GetTopUsers(n int) []userPostCount {
+	var userPostCounts []userPostCount
 	for user, count := range s.UserPostCounts {
-		if count > maxPosts {
-			topUser = user
-			maxPosts = count
-		}
+		userPostCounts = append(userPostCounts, userPostCount{User: user, Posts: count})
 	}
-	return topUser
+
+	// sort the slice by post count descending
+	sort.Slice(userPostCounts, func(i, j int) bool {
+		return userPostCounts[i].Posts > userPostCounts[j].Posts
+	})
+
+	if n > len(userPostCounts) {
+		n = len(userPostCounts)
+	}
+	return userPostCounts[:n]
 }
 
 func (s *Statistics) GetTopUserCount() int {
