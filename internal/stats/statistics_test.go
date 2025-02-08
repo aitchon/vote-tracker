@@ -61,11 +61,25 @@ func TestStatistics(t *testing.T) {
 			ID:     "4",
 		},
 	}
+	post5 := models.RedditPost{
+		Data: struct {
+			Title  string `json:"title"`
+			Ups    int    `json:"ups"`
+			Author string `json:"author"`
+			ID     string `json:"id"`
+		}{
+			Title:  "Post 5",
+			Ups:    25,
+			Author: "user2",
+			ID:     "5",
+		},
+	}
 
 	stats.Update(post1)
 	stats.Update(post2)
 	stats.Update(post3)
 	stats.Update(post4)
+	stats.Update(post5)
 
 	// Test MostUpvotedPost
 	if stats.MostUpvotedPost.Data.Title != "Post 2" {
@@ -74,13 +88,13 @@ func TestStatistics(t *testing.T) {
 
 	// Test GetTopUser
 	// write a unit test for GetTopUsers
-	topUser := stats.GetTopUsers(1)[0].User
+	topUser := stats.GetTopUsers(10)[0].User
 	if topUser != "user2" {
-		t.Fatalf("expected top user 'user1', got '%s'", topUser)
+		t.Fatalf("expected top user 'user2', got '%s'", topUser)
 	}
 
 	// Test GetTopUserCount
-	if stats.GetTopUserCount() != 2 {
-		t.Fatalf("expected top user count 2, got %d", stats.GetTopUserCount())
+	if stats.GetTopUserCount() != 3 {
+		t.Fatalf("expected top user count 3, got %d", stats.GetTopUserCount())
 	}
 }
