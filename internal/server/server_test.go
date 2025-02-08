@@ -51,11 +51,11 @@ func TestAPIServer(t *testing.T) {
 	if statsResponse.MostUpvotedPost.Data.Author != "test_user" {
 		t.Fatalf("expected top post author to be \"test_user\", got %s", statsResponse.MostUpvotedPost.Data.Author)
 	}
-	if statsResponse.TopUser != "test_user" {
-		t.Fatalf("expected top user to be \"test_user\", got %s", statsResponse.TopUser)
+	if statsResponse.TopUsers[0].User != "test_user" {
+		t.Fatalf("expected top user to be \"test_user\", got %s", statsResponse.TopUsers[0].User)
 	}
-	if statsResponse.TopUserPosts != 1 {
-		t.Fatalf("expected top user post count to be 1, got %d", statsResponse.TopUserPosts)
+	if statsResponse.TopUsers[0].Posts != 1 {
+		t.Fatalf("expected top user post count to be 1, got %d", statsResponse.TopUsers[0].Posts)
 	}
 
 	if resp.StatusCode != http.StatusOK {

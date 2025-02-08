@@ -2,8 +2,11 @@ package models
 
 // StatsResponse represents the response structure for statistics.
 type StatsResponse struct {
-	TopUserPosts    int    `json:"top_user_posts"`
-	TopUser         string `json:"top_user"`
+	TopUsers []struct {
+		User  string `json:"user"`
+		Posts int    `json:"posts"`
+	} `json:"top_users"`
+
 	MostUpvotedPost struct {
 		Data struct {
 			Title  string `json:"title"`
