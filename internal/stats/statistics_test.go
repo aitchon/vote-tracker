@@ -93,8 +93,4 @@ func TestStatistics(t *testing.T) {
 		t.Fatalf("expected top user 'user2', got '%s'", topUser)
 	}
 
-	// Test GetTopUserCount
-	if stats.GetTopUserCount() != 3 {
-		t.Fatalf("expected top user count 3, got %d", stats.GetTopUserCount())
-	}
 }

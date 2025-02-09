@@ -47,13 +47,3 @@ func (s *Statistics) GetTopUsers(n int) []userPostCount {
 	}
 	return userPostCounts[:n]
 }
-
-func (s *Statistics) GetTopUserCount() int {
-	maxPosts := 0
-	for _, count := range s.UserPostCounts {
-		if count > maxPosts {
-			maxPosts = count
-		}
-	}
-	return maxPosts
-}
