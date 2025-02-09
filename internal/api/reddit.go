@@ -8,14 +8,18 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 	"vote-tracker/internal/stats"
 	"vote-tracker/models"
 )
 
-var lastFetchedPostID string
+var (
+	lastFetchedPostID    string
+	rateLimitRemaining   float64   = 60
+	rateLimitReset       float64   = 60
+	lastRequestTimestamp time.Time = time.Now()
+)
 
 // GetOAuthToken fetches an OAuth2 token from Reddit
 func GetOAuthToken() (string, error) {
@@ -80,6 +84,15 @@ func FetchPosts(subreddit, token string, postChan chan<- models.RedditPost) erro
 	// Retry mechanism
 	maxRetries := 3
 	for retry := 0; retry < maxRetries; retry++ {
+		// Enforce rate limiting
+		if rateLimitRemaining < 2 {
+			waitTime := time.Until(lastRequestTimestamp.Add(time.Duration(rateLimitReset) * time.Second))
+			if waitTime > 0 {
+				log.Printf("Rate limit exceeded: Waiting for %.0f seconds...", waitTime.Seconds())
+				time.Sleep(waitTime)
+			}
+		}
+
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			return err
@@ -97,24 +110,10 @@ func FetchPosts(subreddit, token string, postChan chan<- models.RedditPost) erro
 
 		// Handle rate limiting (429 Too Many Requests)
 		if resp.StatusCode == http.StatusTooManyRequests {
-			// Parse rate limit headers
-			rateLimitReset := resp.Header.Get("X-Ratelimit-Reset")
-			rateLimitUsed := resp.Header.Get("X-Ratelimit-Used")
-			rateLimitRemaining := resp.Header.Get("X-Ratelimit-Remaining")
-			resetSeconds, err := strconv.Atoi(rateLimitReset)
-			if err != nil {
-				log.Printf("Failed to parse X-Ratelimit-Reset header: %v", err)
-				resetSeconds = 60 // Default to 60 seconds if parsing fails
-			}
-
-			// Wait for the rate limit to reset
-			waitTime := time.Duration(resetSeconds) * time.Second
-
-			log.Printf("Rate Limit exceeded: Retrying after %v...Used=%s, Remaining=%s, Reset=%s",
-				waitTime, rateLimitUsed, rateLimitRemaining, rateLimitReset)
-
-			time.Sleep(waitTime)
-
+			resetTime := time.Duration(rateLimitReset) * time.Second
+			log.Printf("Rate Limit exceeded: Retrying after %.0f secs ... Remaining=%0.f, Reset=%0.f\n",
+				resetTime.Seconds(), rateLimitRemaining, rateLimitReset)
+			time.Sleep(resetTime)
 			continue // Retry the request
 		}
 
@@ -122,6 +121,9 @@ func FetchPosts(subreddit, token string, postChan chan<- models.RedditPost) erro
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 		}
+
+		// Update rate limit tracking variables
+		updateRateLimitHeaders(resp)
 
 		// Parse the response body
 		body, err := io.ReadAll(resp.Body)
@@ -162,4 +164,17 @@ func ProcessPosts(postChan <-chan models.RedditPost, stats *stats.Statistics) {
 		stats.Update(post)
 		log.Printf("Processed post: %s (%d upvotes)", post.Data.Title, post.Data.Ups)
 	}
+}
+
+// Function to update rate limit tracking variables
+func updateRateLimitHeaders(resp *http.Response) {
+	if remaining := resp.Header.Get("X-Ratelimit-Remaining"); remaining != "" {
+		fmt.Sscanf(remaining, "%f", &rateLimitRemaining)
+	}
+	if reset := resp.Header.Get("X-Ratelimit-Reset"); reset != "" {
+		fmt.Sscanf(reset, "%f", &rateLimitReset)
+	}
+	lastRequestTimestamp = time.Now()
+
+	log.Printf("Rate Limit Remaining: %.0f, Reset in: %.0f seconds\n", rateLimitRemaining, rateLimitReset)
 }

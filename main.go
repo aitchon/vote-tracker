@@ -59,7 +59,7 @@ func main() {
 				if err := api.FetchPosts(subreddit, token, postChan); err != nil {
 					log.Printf("Error fetching posts: %v", err)
 				}
-				time.Sleep(30 * time.Second)
+				time.Sleep(1 * time.Second)
 			}
 		}
 	}()
